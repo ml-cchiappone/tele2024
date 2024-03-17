@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    run: db
+spec:
+  ports:
+  - port: 5432
+    name: db
+  selector:
+    run: db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-mobility
+  labels:
+    run: db
+spec:
+  selector:
+    matchLabels:
+      run: db
+  serviceName: "db"
+  template:
+    metadata:
+      generateName: db-mobility
+      labels:
+        run: db
+    spec:
+      initContainers:
+      - name: "remove-lost-found"
+        image: "busybox:1.25.0"
+        imagePullPolicy: "IfNotPresent"
+        command:  ["rm", "-fr", "/var/lib/postgresql/data/lost+found"]
+        volumeMounts:
+        - name: postgresql-data
+          mountPath: /var/lib/postgresql/data
+      containers:
+        - name: db-mobility
+          image: postgres:latest
+          imagePullPolicy: Always
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: db-name
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: db-password
+          ports:
+            - name: db
+              containerPort: 5432
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/data"
+              name: postgresql-data
+            - mountPath: "/docker-entrypoint-initdb.d/"
+              name: sql-schema-data
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: db-secret
+        - configMap: 
+            name: db-schema-data
+          name: sql-schema-data
+  volumeClaimTemplates:
+   - metadata:
+       name: postgresql-data
+     spec:
+       accessModes: [ "ReadWriteOnce" ]
+       resources:
+         requests:
+           storage: 1Gi

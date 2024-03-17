@@ -1,0 +1,27 @@
+apiVersion: v1
+data:
+  01-schema.sql: |
+    DROP TABLE IF EXISTS mobility;
+    CREATE TABLE mobility (
+      country_region_code varchar(255) DEFAULT NULL,
+      country_region varchar(255) DEFAULT NULL,
+      sub_region_1 varchar(255) DEFAULT NULL,
+      sub_region_2 varchar(255) DEFAULT NULL,
+      metro_area varchar(255) DEFAULT NULL,
+      iso_3166_2_code varchar(255) DEFAULT NULL,
+      census_fips_code varchar(255) DEFAULT NULL,
+      place_id varchar(255) DEFAULT NULL,
+      date timestamp DEFAULT NULL,
+      retail_and_recreation_percent_change_from_baseline int DEFAULT NULL,
+      grocery_and_pharmacy_percent_change_from_baseline int DEFAULT NULL,
+      parks_percent_change_from_baseline int DEFAULT NULL,
+      transit_stations_percent_change_from_baseline int DEFAULT NULL,
+      workplaces_percent_change_from_baseline int DEFAULT NULL,
+      residential_percent_change_from_baseline int DEFAULT NULL
+    );
+  02-data.sql: |
+    INSERT INTO mobility VALUES ('AR','Argentina','','','','','','ChIJZ8b99fXKvJURqA_wKpl3Lz0','2020-02-15
+    00:00:00',1,-3,-3,4,-1,0);
+kind: ConfigMap
+metadata:
+  name: db-schema-data
